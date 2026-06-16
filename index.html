@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Coffee Tracker" />
+  <title>Coffee Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <style>
+    :root {
+      --bg1: #f4e5d6;
+      --bg2: #ead6c3;
+      --panel: rgba(255, 248, 241, 0.85);
+      --panel-solid: #fffaf5;
+      --text: #23160f;
+      --muted: #765f4e;
+      --accent: #6f4328;
+      --accent-2: #b27345;
+      --line: rgba(74, 45, 28, 0.10);
+      --shadow: 0 18px 40px rgba(68, 42, 26, 0.14);
+      --danger: #a33d3d;
+      --good: #2f6b49;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.65), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(176,120,79,0.18), transparent 30%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    }
+
+    .app {
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 18px 0 34px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: 31px;
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      color: #2a180f;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .cup {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(160deg, var(--accent), #4f2d18);
+      color: #fff;
+      font-size: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .card {
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 28px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .balance {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      border-radius: 22px;
+      padding: 16px;
+      min-height: 118px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric.primary {
+      background: linear-gradient(160deg, #6d3f26, #442515);
+      color: #fffaf6;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .metric.secondary {
+      background: linear-gradient(160deg, #fff8f1, #f7ece0);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .metric .label {
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0.92;
+    }
+
+    .metric .value {
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .metric.secondary .value {
+      color: #4b2b18;
+    }
+
+    .progress-wrap {
+      margin-top: 16px;
+      height: 12px;
+      background: rgba(90, 54, 33, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6f4328, #c28a59);
+      transition: width .25s ease;
+    }
+
+    .summary {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-weight: 800;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease, opacity .2s ease;
+    }
+
+    button:active {
+      transform: scale(0.985);
+    }
+
+    .primary-btn {
+      flex: 1;
+      background: linear-gradient(160deg, #7d4a2c, #5b341e);
+      color: white;
+      font-size: 17px;
+      box-shadow: 0 8px 18px rgba(96, 57, 35, 0.24);
+    }
+
+    .secondary-btn {
+      background: #fffaf5;
+      border: 1px solid var(--line);
+      color: #5f3820;
+    }
+
+    .danger-btn {
+      background: #fff6f6;
+      border: 1px solid rgba(163,61,61,.18);
+      color: var(--danger);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.82);
+      color: #2d1c13;
+      font-weight: 700;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(111,67,40,0.35);
+      box-shadow: 0 0 0 4px rgba(111,67,40,0.08);
+    }
+
+    .history-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .entry {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .entry-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .entry-date {
+      font-size: 15px;
+      font-weight: 800;
+      color: #2e1b12;
+    }
+
+    .entry-note {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .entry-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .entry-cost {
+      font-size: 15px;
+      font-weight: 900;
+      color: #6a3e24;
+    }
+
+    .undo-btn {
+      padding: 8px 11px;
+      font-size: 12px;
+      border-radius: 12px;
+      background: #fff6f6;
+      color: var(--danger);
+      border: 1px solid rgba(163,61,61,.18);
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 18px 0 8px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(22px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(39,24,16,0.95);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 999px;
+      opacity: 0;
+      transition: .25s ease;
+      pointer-events: none;
+      font-weight: 700;
+      box-shadow: 0 14px 28px rgba(0,0,0,.2);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 430px) {
+      .balance, .settings {
+        grid-template-columns: 1fr;
+      }
+      .metric {
+        min-height: 96px;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg1: #221610;
+        --bg2: #322117;
+        --panel: rgba(48, 33, 24, 0.84);
+        --panel-solid: #38261b;
+        --text: #fff3ea;
+        --muted: #d9bda7;
+        --line: rgba(255,255,255,0.10);
+        --shadow: 0 18px 40px rgba(0,0,0,0.30);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 26%),
+          radial-gradient(circle at bottom right, rgba(194,138,89,0.10), transparent 30%),
+          linear-gradient(160deg, var(--bg1), var(--bg2));
+      }
+
+      .title-wrap h1 { color: #fff3ea; }
+      .metric.secondary,
+      input,
+      .entry,
+      .secondary-btn {
+        background: rgba(255,255,255,0.06);
+        color: var(--text);
+      }
+      .metric.secondary .value,
+      .entry-date,
+      input {
+        color: #fff3ea;
+      }
+      .danger-btn,
+      .undo-btn {
+        background: rgba(163,61,61,.12);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-wrap">
+        <h1>Coffee Tracker</h1>
+        <div class="subtitle">Track your advance payment and each coffee entry</div>
+      </div>
+      <div class="cup">☕</div>
+    </header>
+
+    <section class="card">
+      <div class="balance">
+        <div class="metric primary">
+          <div class="label">Remaining balance</div>
+          <div class="value" id="balance">₩10,000</div>
+        </div>
+        <div class="metric secondary">
+          <div class="label">Coffees left</div>
+          <div class="value" id="cupsLeft">20</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress" id="progress"></div>
+      </div>
+
+      <div class="summary" id="summary">0 coffees used.</div>
+
+      <div class="row">
+        <button class="primary-btn" id="addCoffee">Add coffee — ₩500</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Settings</h2>
+      <div class="settings">
+        <div>
+          <label for="advance">Advance paid</label>
+          <input id="advance" type="number" inputmode="numeric" min="0" step="100" value="10000">
+        </div>
+        <div>
+          <label for="cost">Cost per coffee</label>
+          <input id="cost" type="number" inputmode="numeric" min="0" step="50" value="500">
+        </div>
+      </div>
+      <div class="row">
+        <button class="secondary-btn" id="saveSettings">Save settings</button>
+        <button class="danger-btn" id="resetAll">Reset</button>
+      </div>
+      <div class="small">You can change the advance amount or coffee price any time.</div>
+    </section>
+
+    <section class="card">
+      <h2>History</h2>
+      <div id="history" class="history-wrap"></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">Saved</div>
+
+<script>
+const DEFAULTS = { advance: 10000, cost: 500, entries: [] };
+let state = loadState();
+
+const els = {
+  balance: document.getElementById('balance'),
+  cupsLeft: document.getElementById('cupsLeft'),
+  progress: document.getElementById('progress'),
+  summary: document.getElementById('summary'),
+  history: document.getElementById('history'),
+  addCoffee: document.getElementById('addCoffee'),
+  resetAll: document.getElementById('resetAll'),
+  advance: document.getElementById('advance'),
+  cost: document.getElementById('cost'),
+  saveSettings: document.getElementById('saveSettings'),
+  toast: document.getElementById('toast')
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('coffeeTrackerState');
+    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+  } catch {
+    return { ...DEFAULTS };
+  }
+}
+
+function saveState() {
+  localStorage.setItem('coffeeTrackerState', JSON.stringify(state));
+}
+
+function money(n) {
+  return '₩' + Number(n).toLocaleString('ko-KR');
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function totalSpent() {
+  return state.entries.reduce((sum, e) => sum + Number(e.cost || state.cost), 0);
+}
+
+function showToast(msg) {
+  els.toast.textContent = msg;
+  els.toast.classList.add('show');
+  setTimeout(() => els.toast.classList.remove('show'), 1400);
+}
+
+function render() {
+  els.advance.value = state.advance;
+  els.cost.value = state.cost;
+  els.addCoffee.textContent = `Add coffee — ${money(state.cost)}`;
+
+  const spent = totalSpent();
+  const balance = Math.max(0, state.advance - spent);
+  const cupsLeft = state.cost > 0 ? Math.floor(balance / state.cost) : 0;
+  const used = state.entries.length;
+  const percent = state.advance > 0 ? Math.max(0, Math.min(100, (balance / state.advance) * 100)) : 0;
+
+  els.balance.textContent = money(balance);
+  els.cupsLeft.textContent = cupsLeft;
+  els.progress.style.width = percent + '%';
+  els.summary.textContent = `${used} coffee${used === 1 ? '' : 's'} used · spent ${money(spent)} of ${money(state.advance)}`;
+
+  if (!state.entries.length) {
+    els.history.innerHTML = `<div class="empty">No coffee recorded yet.</div>`;
+    return;
+  }
+
+  els.history.innerHTML = state.entries
+    .slice()
+    .reverse()
+    .map((e, idx) => {
+      const originalIndex = state.entries.length - 1 - idx;
+      return `
+      <div class="entry">
+        <div class="entry-main">
+          <div class="entry-date">${formatDate(e.time)} · ${formatTime(e.time)}</div>
+          <div class="entry-note">Coffee #${originalIndex + 1}</div>
+        </div>
+        <div class="entry-right">
+          <div class="entry-cost">-${money(e.cost)}</div>
+          <button class="undo-btn" onclick="deleteEntry(${originalIndex})">Undo</button>
+        </div>
+      </div>`;
+    })
+    .join('');
+}
+
+function addCoffee() {
+  const spent = totalSpent();
+  if (spent + Number(state.cost) > Number(state.advance)) {
+    showToast('Balance is not enough');
+    return;
+  }
+  state.entries.push({ time: new Date().toISOString(), cost: Number(state.cost) });
+  saveState();
+  render();
+  showToast('Coffee added');
+}
+
+function deleteEntry(index) {
+  state.entries.splice(index, 1);
+  saveState();
+  render();
+  showToast('Entry removed');
+}
+window.deleteEntry = deleteEntry;
+
+function saveSettings() {
+  const newAdvance = Number(els.advance.value || 0);
+  const newCost = Number(els.cost.value || 0);
+  if (newAdvance <= 0 || newCost <= 0) {
+    showToast('Use positive numbers');
+    return;
+  }
+  state.advance = newAdvance;
+  state.cost = newCost;
+  saveState();
+  render();
+  showToast('Settings saved');
+}
+
+function resetAll() {
+  const ok = confirm('Reset all coffee entries?');
+  if (!ok) return;
+  state = {
+    ...DEFAULTS,
+    advance: Number(els.advance.value || 10000),
+    cost: Number(els.cost.value || 500),
+    entries: []
+  };
+  saveState();
+  render();
+  showToast('Reset complete');
+}
+
+els.addCoffee.addEventListener('click', addCoffee);
+els.saveSettings.addEventListener('click', saveSettings);
+els.resetAll.addEventListener('click', resetAll);
+
+render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
